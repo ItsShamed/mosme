@@ -61,6 +61,9 @@
    </item>
    <item row="4" column="0">
     <widget class="QLineEdit" name="UsernameInput">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="placeholderText">
       <string>john_doe</string>
      </property>
@@ -83,7 +86,10 @@
    <item row="8" column="0">
     <widget class="QCheckBox" name="RememberCheck">
      <property name="text">
-      <string>Remember all</string>
+      <string>Remember me</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -111,5 +117,70 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>GuestInput</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>UsernameInput</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>34</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>75</x>
+     <y>105</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GuestInput</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>UsernameLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>34</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>32</x>
+     <y>83</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GuestInput</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>PasswordInput</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>34</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>75</x>
+     <y>150</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GuestInput</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>PasswordLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>34</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>31</x>
+     <y>128</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

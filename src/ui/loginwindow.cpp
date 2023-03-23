@@ -12,7 +12,7 @@ LoginWindow::LoginWindow(QWidget* parent) :
         QDialog(parent), ui(new Ui::LoginWindow)
 {
     ui->setupUi(this);
-    setWindowTitle("mosme — Log in");
+    setWindowTitle("mosme - Log in");
 }
 
 LoginWindow::~LoginWindow()

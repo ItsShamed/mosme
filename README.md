@@ -9,3 +9,11 @@ look at my contributions over the [ppy/osu](https://github.com/ppy/osu/pulls?q=i
 
 > **Note**
 > Fun fact the way how the API client works is completely ripped-off osu! and just adapted to Qt lol.
+
+# Contributions
+
+Honestly, this project doesn't even deserve any contributions given how shitty the code is.
+
+# License
+
+This code is licensed under the What The Fuck Public License. See the [LICENSE](LICENSE) file for more infos.

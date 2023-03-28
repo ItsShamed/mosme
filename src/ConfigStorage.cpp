@@ -74,6 +74,12 @@ namespace mosme
 
     void ConfigStorage::Save() const
     {
+        if (!PersistentStorage)
+        {
+            qInfo() << "User requested to not save config.";
+            return;
+        }
+
         qInfo() << "Saving config...";
         if (!checkStorage())
             return;
@@ -142,5 +148,23 @@ namespace mosme
         out << format("Config(Host={0}, Guest={1}, Username={2}, Password={3}, Session={4})", config.Host,
                       config.Guest ? "yes" : "no", config.Username, config.Password, config.Session);
         return out;
+    }
+
+    bool ConfigStorage::GetSessionCookie(QNetworkCookie* cookie)
+    {
+        if (!PersistentStorage)
+            return false;
+
+        try
+        {
+            QString name("memo_session");
+            QString value(Session.c_str());
+            cookie = new QNetworkCookie(name.toUtf8(), value.toUtf8());
+        }
+        catch (exception &)
+        {
+            return false;
+        }
+        return true;
     }
 } // mosme

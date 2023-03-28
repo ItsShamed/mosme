@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QFile>
+#include <QNetworkCookie>
 #include <nlohmann/json.hpp>
 
 using namespace std;
@@ -20,12 +21,16 @@ namespace mosme
     class ConfigStorage : private QObject
     {
     Q_OBJECT
-    friend ostream& operator<<(ostream&, ConfigStorage&);
+
+        friend ostream &operator<<(ostream &, ConfigStorage &);
+
     private:
         QFile* storage = nullptr;
     private:
-        void setFileStorage(const string&);
+        void setFileStorage(const string &);
+
         bool checkStorage() const;
+
     public:
         /*!
          * @brief Base domain of the memo instance
@@ -41,23 +46,33 @@ namespace mosme
          * @brief Whether the application should (not) authenticate itself.
          */
         bool Guest;
+        /*!
+         * @brief Whether to save this config
+         */
+        bool PersistentStorage;
+        bool UseHttps;
     public:
         ConfigStorage() = delete; // Prohibit the usage of the default ctor in favor for the one below
-        explicit ConfigStorage(const string&);
-        
+        explicit ConfigStorage(const string &);
+
         void Load();
-        void Load(const string& f)
+
+        void Load(const string &f)
         {
             setFileStorage(f);
             Load();
         }
-        
+
         void Save() const;
-        void Save(const string& f)
+
+        void Save(const string &f)
         {
             setFileStorage(f);
             Save();
         }
+
+        bool GetSessionCookie(QNetworkCookie*);
+
         ~ConfigStorage() override;
     };
 } // mosme

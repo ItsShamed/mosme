@@ -9,7 +9,8 @@ using namespace std;
 
 namespace mosme
 {
-    MosmeApp::MosmeApp(int &argc, char** argv) : QApplication(argc, argv), config("config.dat")
+    MosmeApp::MosmeApp(int &argc, char** argv) 
+        : QApplication(argc, argv), config("config.dat"), api(&config)
     {
         cout << "Hello" << endl;
     }

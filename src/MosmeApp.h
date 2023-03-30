@@ -6,6 +6,7 @@
 
 #include <QApplication>
 #include "ConfigStorage.h"
+#include "network/API/APIAccess.h"
 
 namespace mosme
 {
@@ -14,9 +15,12 @@ namespace mosme
     {
     private:
         ConfigStorage config;
+        APIAccess api;
     public:
-        MosmeApp(int& argc, char* argv[]);
+        MosmeApp(int &argc, char* argv[]);
+
         ~MosmeApp() override;
+
         void Hello() const;
     };
 } // mosme

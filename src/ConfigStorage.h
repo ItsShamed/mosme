@@ -71,7 +71,9 @@ namespace mosme
             Save();
         }
 
-        bool GetSessionCookie(QNetworkCookie*);
+        bool GetSessionCookie(QNetworkCookie*) const;
+        
+        string GetInstanceBaseUrl() const;
 
         ~ConfigStorage() override;
     };

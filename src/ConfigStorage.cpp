@@ -13,7 +13,7 @@ using namespace fmt;
 
 namespace mosme
 {
-    void ConfigStorage::setFileStorage(const string &f)
+    inline void ConfigStorage::setFileStorage(const string &f)
     {
         delete storage;
         filesystem::path path(f);
@@ -150,7 +150,7 @@ namespace mosme
         return out;
     }
 
-    bool ConfigStorage::GetSessionCookie(QNetworkCookie* cookie)
+    bool ConfigStorage::GetSessionCookie(QNetworkCookie* cookie) const
     {
         if (!PersistentStorage)
             return false;
@@ -160,11 +160,18 @@ namespace mosme
             QString name("memo_session");
             QString value(Session.c_str());
             cookie = new QNetworkCookie(name.toUtf8(), value.toUtf8());
+            cookie->setDomain(QString(Host.c_str()));
+            cookie->setPath(QString("/"));
         }
         catch (exception &)
         {
             return false;
         }
         return true;
+    }
+
+    string ConfigStorage::GetInstanceBaseUrl() const
+    {
+        return format("{0}://{1}", UseHttps ? "https" : "http", Host);
     }
 } // mosme

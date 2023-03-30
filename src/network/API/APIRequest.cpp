@@ -4,18 +4,16 @@
 
 #include <fmt/format.h>
 #include <QNetworkReply>
+#include "APIAccess.h"
 #include "APIRequest.h"
 
 using namespace fmt;
 
 namespace mosme
 {
-    string APIRequest::GetUri()
+    string APIRequest::GetUri() const
     {
-        return format("{0}://{1}/api/{2}",
-                      API->config.UseHttps ? "https" : "http",
-                      API->config.Host,
-                      GetTarget());
+        return format("{0}/api/{1}", API->config->GetInstanceBaseUrl(), GetTarget());
     }
 
     APIRequestCompletionState APIRequest::GetCompletionState()
@@ -27,11 +25,14 @@ namespace mosme
     {
         if (api == nullptr || typeid(*api) != typeid(APIAccess))
         {
-            Fail(format("A {} is required in order to make requests.", typeid(APIAccess).name()));
+            Fail(format("A {} is required in order to make requests.", typeid(APIAccess).name()), nullptr);
             return;
         }
 
         API = dynamic_cast<APIAccess*>(api);
+
+        if (!API->IsLoggedIn() && RequiresLogin())
+            Fail("This request requires to be logged in.", nullptr);
 
         if (isFailing()) return;
 
@@ -60,14 +61,14 @@ namespace mosme
                 Reply = API->put(*WebRequest, CreateRequestData());
                 break;
             default:
-                Fail("Unsupported request operation.");
+                Fail("Unsupported request operation.", nullptr);
                 return;
         }
 
         connect(Reply, &QNetworkReply::errorOccurred, this, [&](QNetworkReply::NetworkError code)
         {
             Fail(format("{0} failed with error code {1}: {2}",
-                        typeid(this).name(), (int) code, Reply->errorString().toStdString()));
+                        typeid(this).name(), (int) code, Reply->errorString().toStdString()), new HttpCode{code});
         });
 
         if (isFailing()) return;
@@ -85,7 +86,7 @@ namespace mosme
     {
 
         {
-            lock_guard<mutex> lock(completionStateLock);
+            lock_guard lock(completionStateLock);
 
             if (completionState != Waiting)
                 return;
@@ -97,28 +98,33 @@ namespace mosme
         emit Success();
     }
 
-    void APIRequest::TriggerFailure(const string &msg)
+    void APIRequest::TriggerFailure(const string &msg, const HttpCode* err)
     {
         {
-            lock_guard<mutex> lock(completionStateLock);
+            lock_guard lock(completionStateLock);
 
             if (completionState != Waiting)
                 return;
 
             completionState = Failed;
         }
+        HttpCode errCpy = *err;
+        failure = new APIRequestFailure{
+            msg,
+            &errCpy
+        };
 
-        emit Failure(msg);
+        emit Failure(msg, err);
     }
 
     void APIRequest::Cancel()
     {
-        Fail("Request cancelled.");
+        Fail("Request cancelled.", nullptr);
     }
 
-    void APIRequest::Fail(const string &msg)
+    void APIRequest::Fail(const string &msg, const HttpCode* err)
     {
-        lock_guard<mutex> lock(completionStateLock);
+        lock_guard lock(completionStateLock);
 
         if (completionState != Waiting)
             return;
@@ -126,39 +132,22 @@ namespace mosme
         Reply->abort();
 
         qCritical() << "Failing request " << typeid(this).name() << ": " << QByteArrayView(msg);
-        TriggerFailure(msg);
+        TriggerFailure(msg, err);
     }
 
     bool APIRequest::isFailing()
     {
-        lock_guard<mutex> lock(completionStateLock);
+        lock_guard lock(completionStateLock);
         return completionState == Failed;
     }
 
-    template<typename T>
-    ReplyingAPIRequest<T>::ReplyingAPIRequest()
+    QNetworkRequest* APIRequest::CreateWebRequest() const
     {
-        connect(this, &APIRequest::Success, this, [&]()
-        {
-            emit Success(GetResponse());
-        });
+        return new QNetworkRequest(QUrl(QString(GetUri().c_str())));
     }
 
-    template<typename T>
-    T* ReplyingAPIRequest<T>::GetResponse() const
+    APIRequestFailure* APIRequest::GetFailure() const
     {
-        return response;
-    }
-
-    template<typename T>
-    void ReplyingAPIRequest<T>::PostProcess()
-    {
-        if (Reply != nullptr)
-        {
-            response = CreateData(Reply->readAll());
-            qInfo() << "Finished with response size of " << Reply->size() << " bytes.";
-        }
-
-        APIRequest::PostProcess();
+        return failure;
     }
 } // mosme

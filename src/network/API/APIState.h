@@ -11,6 +11,7 @@ namespace mosme
         Offline,
         Failing,
         Connecting,
-        Online
+        Guest,
+        Online,
     };
 }

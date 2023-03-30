@@ -1,4 +1,4 @@
-include_directories(${mosme_SOURCE_DIR}/include)
+include_directories(${mosme_SOURCE_DIR}/include/verdigris)
 
 set(CPM_SOURCE_CACHE)
 set(CPM_USE_LOCAL_PACKAGES)
@@ -17,15 +17,24 @@ if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(mosme 
             MANUAL_FINALIZATION
             main.cpp ui/loginwindow.cpp ui/loginwindow.h ui/loginwindow.ui MosmeApp.cpp MosmeApp.h
-            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h)
+            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp)
 else()
     add_executable(mosme main.cpp ui/loginwindow.cpp ui/loginwindow.h ui/loginwindow.ui MosmeApp.cpp MosmeApp.h
-            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h)
+            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp)
 endif ()
 target_compile_features(mosme PRIVATE cxx_attribute_deprecated)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:nlohmann/json@3.10.5")
+CPMAddPackage(
+        NAME verdigris
+        GIT_TAG add-cmake
+        GITHUB_REPOSITORY dand-oss/verdigris
+)
+
+if (verdigris_ADDED)
+   include_directories(${verdigris_SOURCE_DIR}) 
+endif ()
 
 target_link_libraries(mosme
         PRIVATE

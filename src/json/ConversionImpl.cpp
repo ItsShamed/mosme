@@ -6,6 +6,8 @@
 #include "../network/HostProfile.h"
 #include "../network/User.h"
 #include "../network/API/requests/responses/GetStatusResponse.h"
+#include "../network/Memo.h"
+#include "../network/API/requests/responses/GetMemosResponse.h"
 
 namespace mosme
 {
@@ -42,9 +44,9 @@ namespace mosme
         data.at("disablePublicMemos").get_to(r.disablePublicMemos);
         data.at("customizedProfile").get_to(r.customisedProfile);
     }
-    
+
     // Json conversion for struct HostCustomisedProfile
-    void from_json(const json& j, HostCustomisedProfile& profile)
+    void from_json(const json &j, HostCustomisedProfile &profile)
     {
         j.at("name").get_to(profile.name);
         j.at("description").get_to(profile.description);
@@ -53,9 +55,44 @@ namespace mosme
     }
 
     // Json conversion for struct HostProfile
-    void from_json(const json& j, HostProfile& profile)
+    void from_json(const json &j, HostProfile &profile)
     {
         j.at("mode").get_to(profile.mode);
         j.at("version").get_to(profile.version);
+    }
+
+    // Json conversion for struct Memo
+    void from_json(const json &j, Memo &memo)
+    {
+        j.at("id").get_to(memo.id);
+
+        memo.rowStatus = MemoUtils::StringToVisibility(j.at("rowStatus").get<string>());
+
+        j.at("creatorId").get_to(memo.creatorId);
+
+        QDateTime ctime;
+        ctime.setMSecsSinceEpoch(j.at("createdTs").get<long>());
+        memo.created = ctime;
+
+        QDateTime utime;
+        utime.setMSecsSinceEpoch(j.at("updatedTs").get<long>());
+        memo.updated = utime;
+
+        j.at("content").get_to(memo.content);
+
+        memo.visibility = MemoUtils::StringToVisibility(j.at("visibility").get<string>());
+
+        j.at("pinned").get_to(memo.pinned);
+
+        j.at("creatorName").get_to(memo.creatorName);
+    }
+    
+    // Json conversion for struct GetMemosResponse
+    void from_json(const json &j, GetMemosResponse &r)
+    {
+        for (const basic_json<>& memoObj : j.at("data"))
+        {
+            r.data.push_back(memoObj.get<Memo>());
+        }
     }
 }

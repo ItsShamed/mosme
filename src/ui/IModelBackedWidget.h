@@ -5,16 +5,15 @@
 #pragma once
 
 #include <QWidget>
+#include "wobjectimpl.h"
 
 namespace mosme
 {
     template <typename TModel>
-    class ModelBackedWidget : public QWidget
+    class IModelBackedWidget
     {
-    private:
-        TModel& model;
     public:
         virtual void SetModel(const TModel&) = 0;
-        virtual TModel GetModel() const = 0;
+        virtual TModel* GetModel() const = 0;
     };
 } // mosme

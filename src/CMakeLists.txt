@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON")
+set(VERBOSE ON)
 set(ENV{QT_MESSAGE_PATTERN} "[%{time process}] %{threadid} file:/%{file}:%{line}: %{message} 
 %{if-critical}%{backtrace}%{endif}")
 
@@ -17,20 +19,15 @@ if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(mosme 
             MANUAL_FINALIZATION
             main.cpp ui/loginwindow.cpp ui/loginwindow.h ui/loginwindow.ui MosmeApp.cpp MosmeApp.h
-            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp network/API/APILoopThread.cpp network/API/APILoopThread.h network/Memo.h network/API/requests/GetMemosRequest.cpp network/API/requests/GetMemosRequest.h)
+            ui/IModelBackedWidget.cpp ui/IModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp network/API/APILoopThread.cpp network/API/APILoopThread.h network/Memo.h ui/MemoListItem.cpp ui/MemoListItem.h ui/MemoListItem.ui network/API/requests/GetMemosRequest.cpp network/API/requests/GetMemosRequest.h network/API/requests/responses/GetMemosResponse.h)
 else()
     add_executable(mosme main.cpp ui/loginwindow.cpp ui/loginwindow.h ui/loginwindow.ui MosmeApp.cpp MosmeApp.h
-            ui/ModelBackedWidget.cpp ui/ModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp network/API/APILoopThread.cpp network/API/APILoopThread.h network/Memo.h network/API/requests/GetMemosRequest.cpp network/API/requests/GetMemosRequest.h)
+            ui/IModelBackedWidget.cpp ui/IModelBackedWidget.h ui/mainwindow.cpp ui/mainwindow.h ui/mainwindow.ui ConfigStorage.cpp ConfigStorage.h network/API/APIRequest.cpp network/API/APIRequest.h network/API/ICanPerform.cpp network/API/ICanPerform.h network/API/APIAccess.cpp network/API/APIAccess.h network/API/IAPIProvider.h network/API/APIRequestCompletionState.h exceptions/NotSupportedException.cpp exceptions/NotSupportedException.h network/API/APIState.h network/API/ReplyingAPIRequest.cpp network/API/ReplyingAPIRequest.h network/API/requests/GetStatusRequest.cpp network/API/requests/GetStatusRequest.h network/User.h network/HostCustomisedProfile.h network/HostProfile.h network/API/requests/responses/GetStatusResponse.h network/API/requests/PostAuthSignInRequest.cpp network/API/requests/PostAuthSignInRequest.h json/JsonUtils.h network/API/requests/GetUserMeRequest.cpp network/API/requests/GetUserMeRequest.h json/ConversionImpl.cpp network/API/APILoopThread.cpp network/API/APILoopThread.h network/Memo.h ui/MemoListItem.cpp ui/MemoListItem.h ui/MemoListItem.ui network/API/requests/GetMemosRequest.cpp network/API/requests/GetMemosRequest.h network/API/requests/responses/GetMemosResponse.h)
 endif ()
 target_compile_features(mosme PRIVATE cxx_attribute_deprecated)
 
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")
 CPMAddPackage("gh:nlohmann/json@3.10.5")
-CPMAddPackage(
-        NAME verdigris
-        GIT_TAG add-cmake
-        GITHUB_REPOSITORY dand-oss/verdigris
-)
 
 if (verdigris_ADDED)
    include_directories(${verdigris_SOURCE_DIR}) 

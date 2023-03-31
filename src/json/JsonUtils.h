@@ -6,6 +6,7 @@
 
 #include <QByteArray>
 #include <QString>
+#include <QDebug>
 #include <nlohmann/json.hpp>
 
 using namespace nlohmann;

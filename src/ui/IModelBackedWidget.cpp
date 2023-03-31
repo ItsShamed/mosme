@@ -2,7 +2,7 @@
 // Created by Ryuki
 //
 
-#include "ModelBackedWidget.h"
+#include "IModelBackedWidget.h"
 
 namespace mosme
 {

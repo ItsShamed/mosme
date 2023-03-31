@@ -11,7 +11,8 @@ namespace mosme
     User* GetUserMeRequest::CreateResponseData(QByteArray arr)
     {
         User* resp = new User;
-        *resp = JsonUtils::QByteArrayToJson(arr).at("data").get<User>();
+        json j = JsonUtils::QByteArrayToJson(arr).at("data");
+        *resp = j.get<User>();
         return resp;
     }
 } // mosme

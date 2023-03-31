@@ -27,8 +27,10 @@ namespace mosme
 
             if (Reply != nullptr)
             {
-                response = CreateResponseData(Reply->readAll());
-                qInfo() << "Finished with response size of " << Reply->size() << " bytes.";
+                Reply->open(QIODeviceBase::OpenModeFlag::ReadOnly);
+                QByteArray arr = Reply->readAll();
+                response = CreateResponseData(arr);
+                qInfo() << "Finished with response size of" << arr.size() << "bytes.";
             }
 
             APIRequest::PostProcess();

@@ -33,6 +33,7 @@ namespace mosme
         
         static inline json QByteArrayToJson(const QByteArray &arr)
         {
+            qDebug() << arr.toStdString().c_str();
             return json::parse(arr.toStdString());
         }
     };

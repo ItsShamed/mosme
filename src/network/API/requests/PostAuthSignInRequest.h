@@ -27,6 +27,8 @@ namespace mosme
         QByteArray CreateRequestData() const override;
 
         User* CreateResponseData(QByteArray arr) override;
+        
+        QNetworkRequest* CreateWebRequest() const override;
    
     public:
         PostAuthSignInRequest() = delete;

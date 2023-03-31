@@ -24,8 +24,15 @@ namespace mosme
 
     User* PostAuthSignInRequest::CreateResponseData(QByteArray arr)
     {
-        User* resp;
-        *resp = JsonUtils::QByteArrayToJson(arr)["data"].get<User>();
+        User* resp = new User;
+        *resp = JsonUtils::QByteArrayToJson(arr).at("data").get<User>();
         return resp;
+    }
+
+    QNetworkRequest* PostAuthSignInRequest::CreateWebRequest() const
+    {
+        QNetworkRequest* req = APIRequest::CreateWebRequest();
+        req->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        return req;
     }
 } // mosme

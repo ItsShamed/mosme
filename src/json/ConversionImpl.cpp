@@ -12,50 +12,50 @@ namespace mosme
     // Json conversion for struct User
     void from_json(const json &j, User &u)
     {
-        j["id"].get_to(u.id);
+        j.at("id").get_to(u.id);
 
         QDateTime ctime;
-        ctime.setMSecsSinceEpoch(j["created"].get<long>());
+        ctime.setMSecsSinceEpoch(j.at("createdTs").get<long>());
         u.created = ctime;
 
         QDateTime utime;
-        utime.setMSecsSinceEpoch(j["updated"].get<long>());
+        utime.setMSecsSinceEpoch(j.at("updatedTs").get<long>());
         u.updated = utime;
 
-        j["username"].get_to(u.username);
-        j["role"].get_to(u.role);
-        j["email"].get_to(u.email);
-        j["nickname"].get_to(u.nickname);
-        j["openId"].get_to(u.openId);
+        j.at("username").get_to(u.username);
+        j.at("role").get_to(u.role);
+        j.at("email").get_to(u.email);
+        j.at("nickname").get_to(u.nickname);
+        j.at("openId").get_to(u.openId);
 
-        u.avatarUrl = QUrl(j["avatarUrl"].get<string>().c_str());
+        u.avatarUrl = QUrl(j.at("avatarUrl").get<string>().c_str());
     }
 
     // Json conversion for struct GetStatusResponse
     void from_json(const json &j, GetStatusResponse &r)
     {
-        json data = j["data"];
+        json data = j.at("data");
 
-        data["host"].get_to(r.host);
-        data["profile"].get_to(r.profile);
-        data["allowSignUp"].get_to(r.allowSignUp);
-        data["disablePublicMemos"].get_to(r.disablePublicMemos);
-        data["customizedProfile"].get_to(r.customisedProfile);
+        data.at("host").get_to(r.host);
+        data.at("profile").get_to(r.profile);
+        data.at("allowSignUp").get_to(r.allowSignUp);
+        data.at("disablePublicMemos").get_to(r.disablePublicMemos);
+        data.at("customizedProfile").get_to(r.customisedProfile);
     }
     
     // Json conversion for struct HostCustomisedProfile
     void from_json(const json& j, HostCustomisedProfile& profile)
     {
-        j["name"].get_to(profile.name);
-        j["description"].get_to(profile.description);
-        j["locale"].get_to(profile.locale);
-        j["appearance"].get_to(profile.appearance);
+        j.at("name").get_to(profile.name);
+        j.at("description").get_to(profile.description);
+        j.at("locale").get_to(profile.locale);
+        j.at("appearance").get_to(profile.appearance);
     }
 
     // Json conversion for struct HostProfile
     void from_json(const json& j, HostProfile& profile)
     {
-        j["mode"].get_to(profile.mode);
-        j["version"].get_to(profile.version);
+        j.at("mode").get_to(profile.mode);
+        j.at("version").get_to(profile.version);
     }
 }

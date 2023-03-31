@@ -4,6 +4,7 @@
 
 #include <QThreadPool>
 #include <QDebug>
+#include <QNetworkCookieJar>
 #include "APILoopThread.h"
 #include "APIAccess.h"
 
@@ -37,6 +38,29 @@ namespace mosme
     void APILoopThread::run()
     {
         qDebug() << "API Loop thread started!";
+
+
+        if ($this->config->PersistentStorage)
+        {
+            $this->useCredentials = true;
+            QNetworkCookie* cookie = $this->config->GetSessionCookie();
+            if (cookie)
+                $this->networkCookieJar->insertCookie(*cookie);
+        }
+
+        $this->network->setCookieJar($this->networkCookieJar);
+
+
+        if ($this->config->UseHttps)
+        {
+            qDebug() << "HTTPS connection to " << $this->config->GetInstanceBaseUrl().c_str();
+            $this->network->connectToHostEncrypted(QString($this->config->GetInstanceBaseUrl().c_str()));
+        }
+        else
+        {
+            qDebug() << "HTTP connection to " << $this->config->GetInstanceBaseUrl().c_str();
+            $this->network->connectToHost(QString($this->config->GetInstanceBaseUrl().c_str()));
+        }
 
         while (!isInterruptionRequested())
         {

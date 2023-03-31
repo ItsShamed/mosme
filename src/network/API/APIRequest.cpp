@@ -93,6 +93,8 @@ namespace mosme
         {
             Fail(format("{0} failed with error code {1}: {2}",
                         typeid(this).name(), (int) code, Reply->errorString().toStdString()), new HttpCode{code});
+            if (Reply->open(QIODeviceBase::OpenModeFlag::ReadOnly))
+                qWarning() << Reply->readAll().toStdString().c_str();
         });
 
         connect(Reply, &QNetworkReply::downloadProgress, this, [&](qint64 d, qint64 t)

@@ -18,17 +18,7 @@ namespace mosme
         qDebug() << "Starting API client...";
         config = configStorage;
         state = Offline;
-
-        if (config->PersistentStorage)
-        {
-            useCredentials = true;
-            QNetworkCookie* cookie = config->GetSessionCookie();
-            if (cookie)
-                networkCookieJar->insertCookie(*cookie);
-        }
-
-        network->setCookieJar(networkCookieJar);
-
+        
         qDebug() << connect(&loopThread, &APILoopThread::callRequest_processQueuedRequests, this,
                             &APIAccess::processQueuedRequests);
 

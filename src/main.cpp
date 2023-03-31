@@ -3,14 +3,15 @@
 #include <iostream>
 #include "ui/loginwindow.h"
 #include "MosmeApp.h"
+#include "ui/mainwindow.h"
 
 using namespace std;
 using namespace mosme;
 
 int main(int argc, char* argv[])
 {
-    MosmeApp a(argc, argv);
-    LoginWindow loginWindow(nullptr);
-    loginWindow.show();
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
     return QApplication::exec();
 }

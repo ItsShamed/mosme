@@ -5,6 +5,9 @@
 #pragma once
 
 #include <QMainWindow>
+#include "../ConfigStorage.h"
+#include "../network/API/APIAccess.h"
+#include "loginwindow.h"
 
 namespace mosme
 {
@@ -23,5 +26,8 @@ namespace mosme
 
     private:
         Ui::MainWindow* ui;
+        ConfigStorage config;
+        APIAccess api;
+        LoginWindow login;
     };
 } // mosme

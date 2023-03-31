@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LoginWindow</class>
- <widget class="QDialog" name="LoginWindow">
+ <class>mosme::LoginWindow</class>
+ <widget class="QDialog" name="mosme::LoginWindow">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -111,6 +111,16 @@
     <widget class="QCheckBox" name="GuestInput">
      <property name="text">
       <string>Guest</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QCheckBox" name="UseHttpsCheck">
+     <property name="text">
+      <string>Use HTTPS</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

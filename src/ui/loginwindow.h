@@ -5,21 +5,30 @@
 #pragma once
 
 #include <QDialog>
+#include "../ConfigStorage.h"
+#include "../network/API/APIAccess.h"
 
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class LoginWindow; }
-QT_END_NAMESPACE
-
-class LoginWindow : public QDialog
+namespace mosme
 {
-Q_OBJECT
+    QT_BEGIN_NAMESPACE
+    namespace Ui { class LoginWindow; }
+    QT_END_NAMESPACE
 
-public:
-    explicit LoginWindow(QWidget* parent = nullptr);
+    class LoginWindow : public QDialog
+    {
+    Q_OBJECT
 
-    ~LoginWindow() override;
+    public:
+        LoginWindow(ConfigStorage* config, APIAccess* api, QWidget* parent = nullptr);
 
-private:
-    Ui::LoginWindow* ui;
-};
+        ~LoginWindow() override;
+        
+    private slots:
+        void login();
+
+    private:
+        Ui::LoginWindow* ui;
+        ConfigStorage* config;
+        APIAccess* api;
+    };
+}

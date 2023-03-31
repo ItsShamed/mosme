@@ -55,6 +55,7 @@ namespace mosme
             json j = json::from_msgpack(buf.constData());
             j.at("host").get_to(Host);
             j.at("guest").get_to(Guest);
+            j.at("https").get_to(UseHttps);
 
             if (!Guest)
             {
@@ -70,6 +71,8 @@ namespace mosme
         }
         storage->close();
         qInfo() << "OK";
+        
+        PersistentStorage = true;
     }
 
     void ConfigStorage::Save() const
@@ -94,6 +97,7 @@ namespace mosme
         json j = Guest
                  ? json{
                         {"host",     Host},
+                        {"https",    UseHttps},
                         {"guest",    Guest},
                         {"session",  ""},
                         {"username", ""},
@@ -101,6 +105,7 @@ namespace mosme
                 }
                  : json{
                         {"host",     Host},
+                        {"https",    UseHttps},
                         {"username", Username},
                         {"password", Password},
                         {"guest",    Guest},
@@ -150,24 +155,25 @@ namespace mosme
         return out;
     }
 
-    bool ConfigStorage::GetSessionCookie(QNetworkCookie* cookie) const
+    QNetworkCookie* ConfigStorage::GetSessionCookie() const
     {
         if (!PersistentStorage)
-            return false;
+            return nullptr;
 
         try
         {
+            QNetworkCookie* cookie;
             QString name("memo_session");
             QString value(Session.c_str());
             cookie = new QNetworkCookie(name.toUtf8(), value.toUtf8());
             cookie->setDomain(QString(Host.c_str()));
             cookie->setPath(QString("/"));
+            return cookie;
         }
         catch (exception &)
         {
-            return false;
+            return nullptr;
         }
-        return true;
     }
 
     string ConfigStorage::GetInstanceBaseUrl() const

@@ -7,7 +7,6 @@
 #include "../network/User.h"
 #include "../network/API/requests/responses/GetStatusResponse.h"
 #include "../network/Memo.h"
-#include "../network/API/requests/responses/GetMemosResponse.h"
 
 namespace mosme
 {
@@ -85,14 +84,5 @@ namespace mosme
         j.at("pinned").get_to(memo.pinned);
 
         j.at("creatorName").get_to(memo.creatorName);
-    }
-    
-    // Json conversion for struct GetMemosResponse
-    void from_json(const json &j, GetMemosResponse &r)
-    {
-        for (const basic_json<>& memoObj : j.at("data"))
-        {
-            r.data.push_back(memoObj.get<Memo>());
-        }
     }
 }

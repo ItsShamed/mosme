@@ -3,6 +3,7 @@
 //
 
 #include <QNetworkCookieJar>
+#include <QtConcurrent>
 #include "APIAccess.h"
 #include "requests/GetStatusRequest.h"
 #include "requests/PostAuthSignInRequest.h"
@@ -11,28 +12,30 @@
 namespace mosme
 {
     APIAccess::APIAccess(ConfigStorage* configStorage)
-            : username(configStorage->Username), password(configStorage->Password), host(configStorage->Host)
+            : username(configStorage->Username), password(configStorage->Password), host(configStorage->Host),
+              network(new QNetworkAccessManager), networkCookieJar(new QNetworkCookieJar), loopThread(this)
     {
         qDebug() << "Starting API client...";
         config = configStorage;
         state = Offline;
-        networkCookieJar = new QNetworkCookieJar();
 
         if (config->PersistentStorage)
         {
             useCredentials = true;
-            QNetworkCookie* cookie;
-            if (config->GetSessionCookie(cookie))
+            QNetworkCookie* cookie = config->GetSessionCookie();
+            if (cookie)
                 networkCookieJar->insertCookie(*cookie);
         }
 
-        setCookieJar(networkCookieJar);
+        network->setCookieJar(networkCookieJar);
 
-        thread = new WorkerThread(this);
+        qDebug() << connect(&loopThread, &APILoopThread::callRequest_processQueuedRequests, this,
+                            &APIAccess::processQueuedRequests);
 
-        qDebug() << "Starting API loop thread...";
-        thread->run();
-        qDebug() << "Hello API!";
+        qDebug() << connect(&loopThread, &APILoopThread::callRequest_attemptConnect, this,
+                            &APIAccess::attemptConnect);
+
+        loopThread.start();
     }
 
     string APIAccess::GetSessionCookie() const
@@ -48,6 +51,8 @@ namespace mosme
 
     bool APIAccess::IsCookieValid() const
     {
+        if (config->Guest) return true; // You don't need cookies for Guest
+
         for (QNetworkCookie &cookie
                 : networkCookieJar->cookiesForUrl(QUrl(QString(config->GetInstanceBaseUrl().append("/").c_str()))))
         {
@@ -65,7 +70,7 @@ namespace mosme
 
     void APIAccess::processQueuedRequests()
     {
-        qDebug() << "Processing queued requests...";
+        QMutexLocker functionLock(&loopThread.processQueuedRequestsLock);
         while (true)
         {
             APIRequest* req;
@@ -85,10 +90,22 @@ namespace mosme
 
     void APIAccess::attemptConnect()
     {
+        QMutexLocker functionLock(&loopThread.attemptConnectLock);
         qDebug() << "Attempting to connect to the API...";
         state = Connecting;
 
-        if (!useCredentials)
+        if (config->UseHttps)
+        {
+            qDebug() << "HTTPS connection to " << config->GetInstanceBaseUrl().c_str();
+            network->connectToHostEncrypted(QString(config->GetInstanceBaseUrl().c_str()));
+        }
+        else
+        {
+            qDebug() << "HTTP connection to " << config->GetInstanceBaseUrl().c_str();
+            network->connectToHost(QString(config->GetInstanceBaseUrl().c_str()));
+        }
+
+        if (config->Guest)
         {
             qDebug() << "Guest mode requested.";
             // If guest, try to check for basic status connection.
@@ -240,7 +257,7 @@ namespace mosme
         {
             if (failOldRequests)
                 queue.front()->Fail("Request failed due to flush operation requested.", nullptr);
-           
+
             queue.front()->deleteLater(); // The popped requests won't probably be owned by anyone in the future
 
             queue.pop();
@@ -250,13 +267,14 @@ namespace mosme
     void APIAccess::Logout()
     {
         password = "";
-        
+
         state = Offline;
         flushQueue();
     }
-    
+
     void APIAccess::Login(string &username, string &password)
     {
+        qDebug() << "Login in with username: " << username.c_str();
         this->username = username;
         this->password = password;
     }
@@ -273,14 +291,12 @@ namespace mosme
 
     APIAccess::~APIAccess()
     {
+        loopThread.requestInterruption();
         flushQueue();
         config->Username = username;
         config->Password = password;
         config->Host = host;
         config->Save();
-        delete config;
-        thread->requestInterruption();
-        thread->deleteLater();
         networkCookieJar->deleteLater();
     }
 
@@ -289,52 +305,56 @@ namespace mosme
         this->host = host;
         config->Host = host;
         config->Save();
-        
+
         Logout();
     }
 
-    WorkerThread::WorkerThread(APIAccess* $this)
+    void APIAccess::run()
     {
-        this->$this = $this;
-    }
-
-    void WorkerThread::run()
-    {
-//        QThread::run();
-        
         qDebug() << "API Loop thread started!";
 
-        while (!isInterruptionRequested())
+        while (!isInterruptionRequested)
         {
-            if ($this->state == Failing)
+            qDebug() << "API tick";
+            if (state == Failing)
             {
                 qWarning() << "APIAccess is in a failing state, waiting a bit before trying again...";
-                sleep(5);
+                QThread::sleep(5);
             }
 
-            if (!$this->IsLoggedIn())
+            if (!IsLoggedIn() && !config->Guest)
             {
-                $this->state = Offline;
-                msleep(50);
+                state = Offline;
+                QThread::msleep(50);
                 continue;
             }
 
-            if ($this->state < Guest) // Guest and Online are okay states.
+            if (state < Guest) // Guest and Online are okay states.
             {
-                $this->attemptConnect();
+                attemptConnect();
 
-                if ($this->state < Online)
+                if (state < Online)
                     continue;
             }
 
-            if (!$this->IsCookieValid())
+            if (!IsCookieValid())
             {
-                $this->Logout();
+                Logout();
                 continue;
             }
 
-            $this->processQueuedRequests();
-            msleep(50);
+            processQueuedRequests();
+            QThread::msleep(50);
         }
+    }
+
+    void APIAccess::Stop()
+    {
+        isInterruptionRequested = true;
+    }
+
+    void APIAccess::Start()
+    {
+        run();
     }
 } // mosme

@@ -11,22 +11,31 @@
 #include "APIRequest.h"
 #include "../../ConfigStorage.h"
 #include "APIState.h"
+#include "APILoopThread.h"
+
+
+#ifndef QT_NO_DEBUG
+#define CHECK_TRUE(instruction) Q_ASSERT(instruction)
+#else
+#define CHECK_TRUE(instruction) (instruction)
+#endif
 
 using namespace fmt;
 
 namespace mosme
 {
-    class WorkerThread;
 
-    class APIAccess : public QNetworkAccessManager, public IAPIProvider
+    class APIAccess : public QObject, public IAPIProvider
     {
     Q_OBJECT
 
         friend class APIRequest;
 
-    private:
+        friend class APILoopThread;
 
-        friend class WorkerThread;
+        Q_PROPERTY(APIState currentState MEMBER state NOTIFY stateChanged)
+
+    private:
 
         queue<APIRequest*> queue;
         ConfigStorage* config;
@@ -34,30 +43,37 @@ namespace mosme
         string username;
         string password;
         APIState state;
-        WorkerThread* thread;
+        APILoopThread loopThread;
+        QNetworkAccessManager* network;
         QNetworkCookieJar* networkCookieJar;
         mutex queueLock;
         char failCount = 0;
         bool useCredentials = false;
+        bool isInterruptionRequested = false;
+
+        void run();
+
+        bool handleRequest(APIRequest &);
+
+        void handleFailure();
+
+        void handleWebException(HttpCode &code);
+
+        void flushQueue(bool = true);
+        
+    private slots:
 
         void processQueuedRequests();
 
         void attemptConnect();
 
-        bool handleRequest(APIRequest &);
-        
-        void handleFailure();
-        
-        void handleWebException(HttpCode& code);
-
-        void flushQueue(bool = true);
-
     protected:
         string GetSessionCookie() const;
-        
+
         bool IsCookieValid() const;
 
     signals:
+        void stateChanged(const APIState state);
 
     public:
         void Perform(APIRequest*) override;
@@ -73,8 +89,12 @@ namespace mosme
         virtual APIState GetState() const;
 
         void Queue(APIRequest &) override;
-        
+
         void SetHost(const string &host);
+        
+        void Stop();
+        
+        void Start();
 
     public:
         APIAccess() = delete;
@@ -82,17 +102,5 @@ namespace mosme
         explicit APIAccess(ConfigStorage*);
 
         ~APIAccess() override;
-    };
-
-    class WorkerThread : public QThread
-    {
-    private:
-        APIAccess* $this;
-
-    public:
-        void run() override;
-
-    public:
-        explicit WorkerThread(APIAccess*);
     };
 } // mosme

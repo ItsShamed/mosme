@@ -3,7 +3,9 @@
 //
 
 #include <fmt/format.h>
+#include <QMutexLocker>
 #include <QNetworkReply>
+#include <QEventLoop>
 #include "APIAccess.h"
 #include "APIRequest.h"
 
@@ -11,6 +13,10 @@ using namespace fmt;
 
 namespace mosme
 {
+    APIRequest::APIRequest() : QObject(nullptr)
+    {
+    }
+
     string APIRequest::GetUri() const
     {
         return format("{0}/api/{1}", API->config->GetInstanceBaseUrl(), GetTarget());
@@ -31,6 +37,8 @@ namespace mosme
 
         API = dynamic_cast<APIAccess*>(api);
 
+        this->moveToThread(API->thread());
+
         if (!API->IsLoggedIn() && RequiresLogin())
             Fail("This request requires to be logged in.", nullptr);
 
@@ -46,24 +54,40 @@ namespace mosme
         switch (GetOperation())
         {
             case QNetworkAccessManager::Operation::HeadOperation:
-                Reply = API->head(*WebRequest);
+                qDebug() << "HEAD request";
+                Reply = API->network->head(*WebRequest);
                 break;
             case QNetworkAccessManager::Operation::GetOperation:
-                Reply = API->get(*WebRequest);
+                qDebug() << "GET request";
+                Reply = API->network->get(*WebRequest);
                 break;
             case QNetworkAccessManager::Operation::DeleteOperation:
-                Reply = API->deleteResource(*WebRequest);
+                qDebug() << "DELETE request";
+                Reply = API->network->deleteResource(*WebRequest);
                 break;
             case QNetworkAccessManager::Operation::PostOperation:
-                Reply = API->post(*WebRequest, CreateRequestData());
+                qDebug() << "POST request";
+                Reply = API->network->post(*WebRequest, CreateRequestData());
                 break;
             case QNetworkAccessManager::Operation::PutOperation:
-                Reply = API->put(*WebRequest, CreateRequestData());
+                qDebug() << "PUT request";
+                Reply = API->network->put(*WebRequest, CreateRequestData());
                 break;
             default:
                 Fail("Unsupported request operation.", nullptr);
                 return;
         }
+
+        Reply->moveToThread(API->network->thread());
+
+        if (loop)
+            loop->deleteLater();
+
+        loop = new QEventLoop;
+
+        connect(Reply, SIGNAL(finished()), loop, SLOT(quit()));
+        connect(Reply, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), loop, SLOT(quit()));
+
 
         connect(Reply, &QNetworkReply::errorOccurred, this, [&](QNetworkReply::NetworkError code)
         {
@@ -71,8 +95,25 @@ namespace mosme
                         typeid(this).name(), (int) code, Reply->errorString().toStdString()), new HttpCode{code});
         });
 
+        connect(Reply, &QNetworkReply::downloadProgress, this, [&](qint64 d, qint64 t)
+        {
+            qDebug() << "Request progress: " << d << "/" << t;
+        });
+
+        loop->exec();
+
+/*
+        while (Reply->isRunning())
+        {
+            qDebug() << Reply->isTransactionStarted();
+            qDebug() << "quoicoubeh";
+            qDebug() << Reply->isFinished();
+        }
+*/
+
         if (isFailing()) return;
 
+        qDebug() << "Post-processing request...";
         PostProcess();
 
         TriggerSuccess();
@@ -84,9 +125,9 @@ namespace mosme
 
     void APIRequest::TriggerSuccess()
     {
-
+        qDebug() << "Triggering request success...";
         {
-            lock_guard lock(completionStateLock);
+            QMutexLocker lock(&completionStateLock);
 
             if (completionState != Waiting)
                 return;
@@ -101,17 +142,23 @@ namespace mosme
     void APIRequest::TriggerFailure(const string &msg, const HttpCode* err)
     {
         {
-            lock_guard lock(completionStateLock);
+            QMutexLocker lock(&completionStateLock);
 
             if (completionState != Waiting)
                 return;
 
             completionState = Failed;
         }
-        HttpCode errCpy = *err;
+        
+        HttpCode errCpy{0};
+        
+        if (err)
+            errCpy = *err;
+        
+        
         failure = new APIRequestFailure{
-            msg,
-            &errCpy
+                msg,
+                &errCpy
         };
 
         emit Failure(msg, err);
@@ -124,12 +171,14 @@ namespace mosme
 
     void APIRequest::Fail(const string &msg, const HttpCode* err)
     {
-        lock_guard lock(completionStateLock);
+        {
+            QMutexLocker lock(&completionStateLock);
 
-        if (completionState != Waiting)
-            return;
-
+            if (completionState != Waiting)
+                return;
+        }
         Reply->abort();
+        loop->quit();
 
         qCritical() << "Failing request " << typeid(this).name() << ": " << QByteArrayView(msg);
         TriggerFailure(msg, err);
@@ -137,7 +186,7 @@ namespace mosme
 
     bool APIRequest::isFailing()
     {
-        lock_guard lock(completionStateLock);
+        QMutexLocker lock(&completionStateLock);
         return completionState == Failed;
     }
 

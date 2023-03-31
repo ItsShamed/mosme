@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <mutex>
+#include <QMutex>
+#include <QEventLoop>
 #include <QNetworkReply>
 #include "ICanPerform.h"
 #include "APIAccess.h"
@@ -49,9 +50,10 @@ namespace mosme
     {
     Q_OBJECT
     private:
-        mutex completionStateLock;
+        QMutex completionStateLock;
         APIRequestCompletionState completionState = Waiting;
-        APIRequestFailure* failure;
+        APIRequestFailure* failure{};
+        QEventLoop* loop = nullptr;
 
         bool isFailing();
 
@@ -97,6 +99,8 @@ namespace mosme
         APIRequestCompletionState GetCompletionState();
         
         APIRequestFailure* GetFailure() const;
+        
+        APIRequest();
         
     };
 } // mosme
